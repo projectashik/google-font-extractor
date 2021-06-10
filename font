@@ -1,0 +1,51 @@
+#! C:\Users\proje\AppData\Local\Programs\Python\Python39\python.exe
+
+import sys
+import requests
+import pyperclip
+from win10toast import ToastNotifier
+from pynput.keyboard import Key, Controller
+
+
+toaster = ToastNotifier()
+
+def notify(body):
+    icon_path = "C:\\envs\\Scripts\\favicon.ico"
+    toaster.show_toast(title="Google font template generator", msg=body, duration=5, icon_path=icon_path)
+
+def get_font(font_family, font_weight, template):
+
+    google_fonts_url = "https://fonts.googleapis.com/css2?family=" + \
+          font_family+":wght@"+font_weight+"&display=swap"
+    if(template == 'html'):
+        export_template = f'<link rel="preconnect" href="https://fonts.gstatic.com"/>\n<link rel="stylesheet" href="{google_fonts_url}"/>'
+    else: 
+        export_template = f"@import url('{google_fonts_url}');"
+    r = requests.get(google_fonts_url)
+    response = r.status_code
+    if response == 200:
+        # print(export_template)
+        pyperclip.copy(export_template)
+        notify(template+" of font have been copied")
+        keyboard = Controller()
+        with keyboard.pressed(Key.ctrl) and keyboard.pressed('v'):
+            pyperclip.copy("font-family: \"" + font_family.replace("+", " ") + "\", 'sans-serif'")
+            notify("Css have been copied")
+        exit()  
+    elif response == 400:
+        notify("Font not found")
+    else:
+        notify("Something went wrong")
+
+if __name__ == "__main__":
+    print("Python google font css link generator and checker")
+    print("Usage:\nfont <fontFamily> <fontWeight> <css|html>")
+    print("Example:\nfont 'Open Sans' '400, 600, 700' 'css'")
+
+    if(len(sys.argv) < 4):
+        get_font('Open+Sans', '400;600', 'css')
+        exit()
+    font_family = sys.argv[1 ].replace(" ", "+")
+    font_weight = sys.argv[2].replace(" ", ";")
+    template = sys.argv[3]
+    get_font(font_family, font_weight, template)
